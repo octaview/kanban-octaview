@@ -20,13 +20,13 @@ func Connect() (*sql.DB, error) {
 	)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening db: %w", err)
 	}
 	// Проверка соединения с таймаутом
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := db.PingContext(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error pinging db: %w", err)
 	}
 	return db, nil
 }

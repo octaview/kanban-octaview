@@ -1,4 +1,4 @@
-module github.com/yourusername/kanban-backend
+module github.com/octaview/kanban-backend
 
 go 1.22.2
 

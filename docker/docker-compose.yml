@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  app:
+    build: ./docker
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./config/.env.example
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:17.3
+    environment:
+      POSTGRES_USER: kanban_user
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: kanban_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  pgdata:

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/yourusername/kanban-backend/internal/board"
+	"github.com/octaview/kanban-backend/internal/board"
 )
 
 type BoardRepository interface {

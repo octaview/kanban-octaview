@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"context"
-	"database/sql"
-	"kanban-octaview/internal/board"
+    "context"
+    "database/sql"
+    "github.com/octaview/kanban-backend/internal/board"
 )
 
 type boardRepo struct {

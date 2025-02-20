@@ -1,46 +1,38 @@
 package main
-
 import (
-	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"kanban-octaview/internal/db"
-	"kanban-octaview/internal/handler"
-	"kanban-octaview/pkg/repository"
-	"kanban-octaview/pkg/service"
+	"github.com/octaview/kanban-backend/internal/db"
+	"github.com/octaview/kanban-backend/internal/handler"
+	"github.com/octaview/kanban-backend/pkg/repository"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// Загрузка конфигурации из .env
 	if err := godotenv.Load("config/.env.example"); err != nil {
 		logrus.Warn("No .env file found")
 	}
 
-	// Инициализация логгера
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetReportCaller(true)
 
-	// Подключение к БД
 	dbConn, err := db.Connect()
 	if err != nil {
 		logger.Fatal("DB connection error: ", err)
 	}
 	defer dbConn.Close()
 
-	// Инициализация репозиториев и сервисов
 	boardRepo := repository.NewBoardRepository(dbConn)
 	boardHandler := handler.NewBoardHandler(boardRepo)
-	// Здесь можно инициализировать сервисы (например, TaskService) и аутентификацию
 
-	// Настройка Gin
 	router := gin.New()
+	setupMiddleware(router)
 	router.Use(gin.LoggerWithWriter(os.Stdout))
 	router.Use(gin.Recovery())
-	// Пример middleware для CORS:
 	router.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,Authorization")
@@ -68,4 +60,19 @@ func main() {
 		port = "8080"
 	}
 	router.Run(":" + port)
+}
+
+func setupMiddleware(r *gin.Engine) {
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	})
 }

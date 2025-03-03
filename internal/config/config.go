@@ -26,6 +26,7 @@ type DatabaseConfig struct {
 	Password string
 	DBName   string
 	SSLMode  string
+	DSN string
 }
 
 type JWTConfig struct {

@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/octaview/kanban-octaview/internal/config"
 	"github.com/octaview/kanban-octaview/internal/models"
@@ -36,7 +35,7 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 			&models.Comment{},
 		)
 		if err != nil {
-			log.Printf("Warning: Auto migration failed: %v", err)
+			return nil, fmt.Errorf("Warning: Auto migration failed: %v", err)
 		}
 	}
 

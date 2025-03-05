@@ -43,6 +43,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+	
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
 
 	router := gin.Default()
 

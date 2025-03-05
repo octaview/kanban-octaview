@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,9 +13,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/octaview/kanban-octaview/internal/config"
 	"github.com/octaview/kanban-octaview/pkg/database"
+	"github.com/octaview/kanban-octaview/pkg/logger"
 )
 
 func main() {
+	logConfig := logger.Config{
+		Level:       slog.LevelInfo,
+		Development: true,
+		Filename:    "logs/app.log",
+	}
+
+	log, err := logger.InitLogger(logConfig)
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer logger.Close()
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -31,7 +45,6 @@ func main() {
 	}
 
 	router := gin.Default()
-
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

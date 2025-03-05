@@ -35,7 +35,7 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 			&models.Comment{},
 		)
 		if err != nil {
-			return nil, fmt.Errorf("Warning: Auto migration failed: %v", err)
+			return nil, fmt.Errorf("warning: Auto migration failed: %v", err)
 		}
 	}
 

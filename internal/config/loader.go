@@ -28,6 +28,16 @@ func LoadConfig() (*Config, error) {
 		},
 	}
 
+	config.Database.DSN = fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		config.Database.Host,
+		config.Database.Port,
+		config.Database.User,
+		config.Database.Password,
+		config.Database.DBName,
+		config.Database.SSLMode,
+	)
+
 	jwtExpStr := getEnv("JWT_EXPIRATION", "24h")
 	jwtExpiration, err := time.ParseDuration(jwtExpStr)
 	if err != nil {

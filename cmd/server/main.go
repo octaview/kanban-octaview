@@ -41,7 +41,7 @@ func main() {
 
 	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
-		log.Error("Failed to initialize database: %v", err)
+		log.Error("Failed to initialize database", slog.Any("error", err))
 	}
 	
 	sqlDB, _ := db.DB()
@@ -63,7 +63,7 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error("Failed to start server: %v", err)
+			log.Error("Failed to start server:", slog.Any("error", err))
 		}
 	}()
 
@@ -78,7 +78,7 @@ func main() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Error("Server forced to shutdown: %v", err)
+		log.Error("Server forced to shutdown:", slog.Any("error", err))
 	}
 
 	log.Info("Server exited properly")

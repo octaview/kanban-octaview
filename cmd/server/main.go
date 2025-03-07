@@ -32,7 +32,7 @@ func main() {
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Error("Failed to load config", slog.Any("error", err))
 	}
 
 	if cfg.App.Env == "production" {
@@ -41,7 +41,7 @@ func main() {
 
 	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		log.Error("Failed to initialize database: %v", err)
 	}
 	
 	sqlDB, _ := db.DB()
@@ -63,23 +63,23 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			log.Error("Failed to start server: %v", err)
 		}
 	}()
 
-	log.Printf("Server started on port %s", cfg.HTTP.Port)
+	log.Info("Server started", slog.String("port", cfg.HTTP.Port))
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	log.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		log.Error("Server forced to shutdown: %v", err)
 	}
 
-	log.Println("Server exited properly")
+	log.Info("Server exited properly")
 }

@@ -24,11 +24,19 @@ type UserServiceInterface interface {
 	ChangePassword(ctx context.Context, id uint, oldPassword, newPassword string) error
 }
 
+type BoardServiceInterface interface {
+	Create(ctx context.Context, board *models.Board) error
+	GetByID(ctx context.Context, id uint) (*models.Board, error)
+	GetByOwnerID(ctx context.Context, ownerID uint) ([]models.Board, error)
+	Update(ctx context.Context, board *models.Board) error
+	Delete(ctx context.Context, id uint) error
+}
+
 // Services struct holds all the service instances
 type Services struct {
-	Auth  AuthServiceInterface
-	User  UserServiceInterface
-	// Board BoardService
+	Auth   AuthServiceInterface
+	User   UserServiceInterface
+	Board  BoardServiceInterface
 	// Column ColumnService
 	// Card CardService
 	// Comment CommentService
@@ -37,8 +45,9 @@ type Services struct {
 
 func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 	return &Services{
-		Auth:  NewAuthService(repos.User, cfg),
-		User:  NewUserService(repos.User),
+		Auth:   NewAuthService(repos.User, cfg),
+		User:   NewUserService(repos.User),
+		Board:  NewBoardService(repos.Board, repos.User),
 		// Initialize other services here
 	}
 }

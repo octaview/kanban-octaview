@@ -32,12 +32,21 @@ type BoardServiceInterface interface {
 	Delete(ctx context.Context, id uint) error
 }
 
+type ColumnServiceInterface interface {
+	Create(ctx context.Context, column *models.Column) error
+	GetByID(ctx context.Context, id uint) (*models.Column, error)
+	GetByBoardID(ctx context.Context, boardID uint) ([]models.Column, error)
+	Update(ctx context.Context, column *models.Column) error
+	Delete(ctx context.Context, id uint) error
+	UpdatePositions(ctx context.Context, columns []models.Column) error
+}
+
 // Services struct holds all the service instances
 type Services struct {
 	Auth   AuthServiceInterface
 	User   UserServiceInterface
 	Board  BoardServiceInterface
-	// Column ColumnService
+	Column ColumnServiceInterface
 	// Card CardService
 	// Comment CommentService
 	// Label LabelService
@@ -48,6 +57,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 		Auth:   NewAuthService(repos.User, cfg),
 		User:   NewUserService(repos.User),
 		Board:  NewBoardService(repos.Board, repos.User),
+		Column: NewColumnService(repos.Column, repos.Board),
 		// Initialize other services here
 	}
 }

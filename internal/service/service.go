@@ -55,6 +55,14 @@ type CardServiceInterface interface {
 	UpdateDueDate(ctx context.Context, cardID uint, dueDate *time.Time) error
 }
 
+type LabelServiceInterface interface {
+	Create(ctx context.Context, label *models.Label) error
+	GetByID(ctx context.Context, id uint) (*models.Label, error)
+	GetByBoardID(ctx context.Context, boardID uint) ([]models.Label, error)
+	Update(ctx context.Context, label *models.Label) error
+	Delete(ctx context.Context, id uint) error
+}
+
 // Services struct holds all the service instances
 type Services struct {
 	Auth   AuthServiceInterface
@@ -62,8 +70,8 @@ type Services struct {
 	Board  BoardServiceInterface
 	Column ColumnServiceInterface
 	Card   CardServiceInterface
+	Label  LabelServiceInterface
 	// Comment CommentService
-	// Label LabelService
 }
 
 func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
@@ -73,6 +81,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 		Board:  NewBoardService(repos.Board, repos.User),
 		Column: NewColumnService(repos.Column, repos.Board),
 		Card:   NewCardService(repos.Card, repos.Column, repos.User),
+		Label:  NewLabelService(repos.Label, repos.Board),
 		// Initialize other services here
 	}
 }

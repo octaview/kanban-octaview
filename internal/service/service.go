@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/octaview/kanban-octaview/internal/config"
 	"github.com/octaview/kanban-octaview/internal/models"
@@ -41,13 +42,26 @@ type ColumnServiceInterface interface {
 	UpdatePositions(ctx context.Context, columns []models.Column) error
 }
 
+type CardServiceInterface interface {
+	Create(ctx context.Context, card *models.Card) error
+	GetByID(ctx context.Context, id uint) (*models.Card, error)
+	GetByColumnID(ctx context.Context, columnID uint) ([]models.Card, error)
+	Update(ctx context.Context, card *models.Card) error
+	Delete(ctx context.Context, id uint) error
+	UpdatePositions(ctx context.Context, cards []models.Card) error
+	MoveCard(ctx context.Context, cardID, columnID uint, position int) error
+	AssignCard(ctx context.Context, cardID, userID uint) error
+	UnassignCard(ctx context.Context, cardID uint) error
+	UpdateDueDate(ctx context.Context, cardID uint, dueDate *time.Time) error
+}
+
 // Services struct holds all the service instances
 type Services struct {
 	Auth   AuthServiceInterface
 	User   UserServiceInterface
 	Board  BoardServiceInterface
 	Column ColumnServiceInterface
-	// Card CardService
+	Card   CardServiceInterface
 	// Comment CommentService
 	// Label LabelService
 }
@@ -58,6 +72,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 		User:   NewUserService(repos.User),
 		Board:  NewBoardService(repos.Board, repos.User),
 		Column: NewColumnService(repos.Column, repos.Board),
+		Card:   NewCardService(repos.Card, repos.Column, repos.User),
 		// Initialize other services here
 	}
 }

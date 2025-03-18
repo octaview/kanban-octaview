@@ -55,6 +55,14 @@ type CardServiceInterface interface {
 	UpdateDueDate(ctx context.Context, cardID uint, dueDate *time.Time) error
 }
 
+type CommentServiceInterface interface {
+	Create(ctx context.Context, comment *models.Comment) error
+	GetByID(ctx context.Context, id uint) (*models.Comment, error)
+	GetByCardID(ctx context.Context, cardID uint) ([]models.Comment, error)
+	Update(ctx context.Context, comment *models.Comment) error
+	Delete(ctx context.Context, id uint) error
+}
+
 type LabelServiceInterface interface {
 	Create(ctx context.Context, label *models.Label) error
 	GetByID(ctx context.Context, id uint) (*models.Label, error)
@@ -63,25 +71,24 @@ type LabelServiceInterface interface {
 	Delete(ctx context.Context, id uint) error
 }
 
-// Services struct holds all the service instances
 type Services struct {
-	Auth   AuthServiceInterface
-	User   UserServiceInterface
-	Board  BoardServiceInterface
-	Column ColumnServiceInterface
-	Card   CardServiceInterface
-	Label  LabelServiceInterface
-	// Comment CommentService
+	Auth    AuthServiceInterface
+	User    UserServiceInterface
+	Board   BoardServiceInterface
+	Column  ColumnServiceInterface
+	Card    CardServiceInterface
+	Comment CommentServiceInterface
+	Label   LabelServiceInterface
 }
 
 func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 	return &Services{
-		Auth:   NewAuthService(repos.User, cfg),
-		User:   NewUserService(repos.User),
-		Board:  NewBoardService(repos.Board, repos.User),
-		Column: NewColumnService(repos.Column, repos.Board),
-		Card:   NewCardService(repos.Card, repos.Column, repos.User),
-		Label:  NewLabelService(repos.Label, repos.Board),
-		// Initialize other services here
+		Auth:    NewAuthService(repos.User, cfg),
+		User:    NewUserService(repos.User),
+		Board:   NewBoardService(repos.Board, repos.User),
+		Column:  NewColumnService(repos.Column, repos.Board),
+		Card:    NewCardService(repos.Card, repos.Column, repos.User),
+		Comment: NewCommentService(repos.Comment, repos.Card, repos.User),
+		Label:   NewLabelService(repos.Label, repos.Board),
 	}
 }

@@ -12,6 +12,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/octaview/kanban-octaview/internal/config"
+	"github.com/octaview/kanban-octaview/internal/handlers"
+	"github.com/octaview/kanban-octaview/internal/middleware"
+	"github.com/octaview/kanban-octaview/internal/repository"
+	"github.com/octaview/kanban-octaview/internal/service"
 	"github.com/octaview/kanban-octaview/pkg/database"
 	"github.com/octaview/kanban-octaview/pkg/logger"
 )
@@ -33,6 +37,12 @@ func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Error("Failed to load config", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		log.Error("Invalid configuration", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	if cfg.App.Env == "production" {
@@ -42,10 +52,19 @@ func main() {
 	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
 		log.Error("Failed to initialize database", slog.Any("error", err))
+		os.Exit(1)
 	}
 	
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
+
+	repos := repository.NewRepositories(db)
+	
+	services := service.NewServices(repos, cfg)
+	
+	authMiddleware := middleware.NewAuthMiddleware(services.Auth)
+	
+	handler := handlers.NewHandler(services)
 
 	router := gin.Default()
 
@@ -55,6 +74,8 @@ func main() {
 			"time":   time.Now().Format(time.RFC3339),
 		})
 	})
+
+	handler.InitRoutes(router, authMiddleware.AuthRequired())
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.HTTP.Port),

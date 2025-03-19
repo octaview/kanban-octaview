@@ -19,18 +19,18 @@ func NewHandler(services *service.Services) *Handler {
 	}
 }
 
-func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware *gin.HandlerFunc) {
+func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc) {
 	// Public routes
 	auth := router.Group("/auth")
 	{
 		auth.POST("/register", h.Auth.Register)
 		auth.POST("/login", h.Auth.Login)
 		auth.POST("/refresh", h.Auth.RefreshToken)
-		auth.GET("/me", *authMiddleware, h.Auth.GetMe)
+		auth.GET("/me", authMiddleware, h.Auth.GetMe)
 	}
 
 	// Protected routes
-	api := router.Group("/api", *authMiddleware)
+	api := router.Group("/api", authMiddleware)
 	{
 		users := api.Group("/users")
 		{

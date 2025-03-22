@@ -8,6 +8,7 @@ import (
 type Handler struct {
 	Auth   *AuthHandler
 	User   *UserHandler
+	Board  *BoardHandler
 	// Additional handlers will be added here as needed
 }
 
@@ -15,6 +16,7 @@ func NewHandler(services *service.Services) *Handler {
 	return &Handler{
 		Auth:   NewAuthHandler(services.Auth, services.User),
 		User:   NewUserHandler(services.User),
+		Board:  NewBoardHandler(services.Board),
 		// Initialize other handlers
 	}
 }
@@ -38,6 +40,15 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
 			users.PUT("/:id", h.User.UpdateUser)
 			users.POST("/:id/change-password", h.User.ChangePassword)
 			users.DELETE("/:id", h.User.DeleteUser)
+		}
+
+		boards := api.Group("/boards")
+		{
+			boards.POST("", h.Board.CreateBoard)
+			boards.GET("", h.Board.GetUserBoards)
+			boards.GET("/:id", h.Board.GetBoard)
+			boards.PUT("/:id", h.Board.UpdateBoard)
+			boards.DELETE("/:id", h.Board.DeleteBoard)
 		}
 
 		// Additional routes will be added here

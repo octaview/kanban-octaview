@@ -58,22 +58,31 @@ type LabelRepository interface {
 	Delete(ctx context.Context, id uint) error
 }
 
+type CardLabelRepository interface {
+	AddLabelToCard(ctx context.Context, cardID uint, labelID uint) error
+	RemoveLabelFromCard(ctx context.Context, cardID uint, labelID uint) error
+	GetLabelsByCardID(ctx context.Context, cardID uint) ([]models.Label, error)
+	GetCardsByLabelID(ctx context.Context, labelID uint) ([]models.Card, error)
+}
+
 type Repositories struct {
-	User    UserRepository
-	Board   BoardRepository
-	Column  ColumnRepository
-	Card    CardRepository
-	Comment CommentRepository
-	Label   LabelRepository
+	User      UserRepository
+	Board     BoardRepository
+	Column    ColumnRepository
+	Card      CardRepository
+	Comment   CommentRepository
+	Label     LabelRepository
+	CardLabel CardLabelRepository
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		User:    NewUserRepo(db),
-		Board:   NewBoardRepo(db),
-		Column:  NewColumnRepo(db),
-		Card:    NewCardRepo(db),
-		Comment: NewCommentRepo(db),
-		Label:   NewLabelRepo(db),
+		User:      NewUserRepo(db),
+		Board:     NewBoardRepo(db),
+		Column:    NewColumnRepo(db),
+		Card:      NewCardRepo(db),
+		Comment:   NewCommentRepo(db),
+		Label:     NewLabelRepo(db),
+		CardLabel: NewCardLabelRepo(db),
 	}
 }

@@ -9,6 +9,7 @@ type Handler struct {
 	Auth   *AuthHandler
 	User   *UserHandler
 	Board  *BoardHandler
+	Column *ColumnHandler
 	// Additional handlers will be added here as needed
 }
 
@@ -17,6 +18,7 @@ func NewHandler(services *service.Services) *Handler {
 		Auth:   NewAuthHandler(services.Auth, services.User),
 		User:   NewUserHandler(services.User),
 		Board:  NewBoardHandler(services.Board),
+		Column: NewColumnHandler(services.Column),
 		// Initialize other handlers
 	}
 }
@@ -49,6 +51,18 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
 			boards.GET("/:id", h.Board.GetBoard)
 			boards.PUT("/:id", h.Board.UpdateBoard)
 			boards.DELETE("/:id", h.Board.DeleteBoard)
+			
+			// Board columns routes
+			boards.GET("/:board_id/columns", h.Column.GetBoardColumns)
+		}
+		
+		columns := api.Group("/columns")
+		{
+			columns.POST("", h.Column.CreateColumn)
+			columns.GET("/:id", h.Column.GetColumn)
+			columns.PUT("/:id", h.Column.UpdateColumn)
+			columns.DELETE("/:id", h.Column.DeleteColumn)
+			columns.PUT("/positions", h.Column.UpdateColumnPositions)
 		}
 
 		// Additional routes will be added here

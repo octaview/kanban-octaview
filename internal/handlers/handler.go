@@ -12,7 +12,6 @@ type Handler struct {
 	Board     *BoardHandler
 	Column    *ColumnHandler
 	Card      *CardHandler
-	CardLabel *CardLabelHandler
 	// Additional handlers will be added here as needed
 }
 
@@ -31,7 +30,6 @@ func NewHandler(services *service.Services, repos *repository.Repositories) *Han
 		Board:     NewBoardHandler(services.Board),
 		Column:    NewColumnHandler(services.Column),
 		Card:      NewCardHandler(services.Card, cardLabelService),
-		CardLabel: NewCardLabelHandler(cardLabelService),
 		// Initialize other handlers
 	}
 }

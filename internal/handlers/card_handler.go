@@ -11,13 +11,13 @@ import (
 )
 
 type CardHandler struct {
-	cardService    service.CardServiceInterface
+	cardService      service.CardServiceInterface
 	cardLabelService *service.CardLabelService
 }
 
 func NewCardHandler(cardService service.CardServiceInterface, cardLabelService *service.CardLabelService) *CardHandler {
 	return &CardHandler{
-		cardService:    cardService,
+		cardService:      cardService,
 		cardLabelService: cardLabelService,
 	}
 }
@@ -30,40 +30,42 @@ func NewCardHandler(cardService service.CardServiceInterface, cardLabelService *
 // @Produce json
 // @Param input body models.Card true "Card data"
 // @Success 201 {object} models.Card
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards [post]
 func (h *CardHandler) CreateCard(c *gin.Context) {
 	var card models.Card
 	if err := c.ShouldBindJSON(&card); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if card.Title == "" {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Title is required"})
+		validErr := models.NewValidationError("title", "Title is required")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if card.ColumnID == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Column ID is required"})
+		validErr := models.NewValidationError("column_id", "Column ID is required")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.Create(c.Request.Context(), &card); err != nil {
 		if err == models.ErrColumnNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Column not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		
-		var validationErr *models.ValidationError
-		if models.AsValidationError(err, &validationErr) {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: validationErr.Error()})
+		if validationErr, ok := err.(*models.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
 		
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to create card"})
+		c.JSON(http.StatusInternalServerError, "Failed to create card")
 		return
 	}
 
@@ -77,23 +79,24 @@ func (h *CardHandler) CreateCard(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Success 200 {object} models.Card
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id} [get]
 func (h *CardHandler) GetCard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	card, err := h.cardService.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to get card"})
+		c.JSON(http.StatusInternalServerError, "Failed to get card")
 		return
 	}
 
@@ -107,23 +110,24 @@ func (h *CardHandler) GetCard(c *gin.Context) {
 // @Produce json
 // @Param column_id path int true "Column ID"
 // @Success 200 {array} models.Card
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/columns/{column_id}/cards [get]
 func (h *CardHandler) GetCardsByColumn(c *gin.Context) {
 	columnID, err := strconv.ParseUint(c.Param("column_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid column ID"})
+		validErr := models.NewValidationError("column_id", "Invalid column ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	cards, err := h.cardService.GetByColumnID(c.Request.Context(), uint(columnID))
 	if err != nil {
 		if err == models.ErrColumnNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Column not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to get cards"})
+		c.JSON(http.StatusInternalServerError, "Failed to get cards")
 		return
 	}
 
@@ -139,20 +143,22 @@ func (h *CardHandler) GetCardsByColumn(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body models.Card true "Updated card data"
 // @Success 200 {object} models.Card
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id} [put]
 func (h *CardHandler) UpdateCard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	var card models.Card
 	if err := c.ShouldBindJSON(&card); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -160,21 +166,20 @@ func (h *CardHandler) UpdateCard(c *gin.Context) {
 
 	if err := h.cardService.Update(c.Request.Context(), &card); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		if err == models.ErrColumnNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Column not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		
-		var validationErr *models.ValidationError
-		if models.AsValidationError(err, &validationErr) {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: validationErr.Error()})
+		if validationErr, ok := err.(*models.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
 		
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to update card"})
+		c.JSON(http.StatusInternalServerError, "Failed to update card")
 		return
 	}
 
@@ -188,22 +193,23 @@ func (h *CardHandler) UpdateCard(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Success 204 "No Content"
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id} [delete]
 func (h *CardHandler) DeleteCard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.Delete(c.Request.Context(), uint(id)); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to delete card"})
+		c.JSON(http.StatusInternalServerError, "Failed to delete card")
 		return
 	}
 
@@ -218,28 +224,30 @@ func (h *CardHandler) DeleteCard(c *gin.Context) {
 // @Produce json
 // @Param input body []models.Card true "Cards with new positions"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/positions [put]
 func (h *CardHandler) UpdateCardPositions(c *gin.Context) {
 	var cards []models.Card
 	if err := c.ShouldBindJSON(&cards); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if len(cards) == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "No cards provided"})
+		validErr := models.NewValidationError("cards", "No cards provided")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.UpdatePositions(c.Request.Context(), cards); err != nil {
 		if err == models.ErrColumnNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Column not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to update card positions"})
+		c.JSON(http.StatusInternalServerError, "Failed to update card positions")
 		return
 	}
 
@@ -255,14 +263,15 @@ func (h *CardHandler) UpdateCardPositions(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body struct{ColumnID uint `json:"column_id"`;Position int `json:"position"`} true "New column and position"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/move [post]
 func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -272,25 +281,27 @@ func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if input.ColumnID == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Column ID is required"})
+		validErr := models.NewValidationError("column_id", "Column ID is required")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.MoveCard(c.Request.Context(), uint(id), input.ColumnID, input.Position); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		if err == models.ErrColumnNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Column not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to move card"})
+		c.JSON(http.StatusInternalServerError, "Failed to move card")
 		return
 	}
 
@@ -306,14 +317,15 @@ func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body struct{UserID uint `json:"user_id"`} true "User ID"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/assign [post]
 func (h *CardHandler) AssignCard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -322,25 +334,28 @@ func (h *CardHandler) AssignCard(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if input.UserID == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "User ID is required"})
+		validErr := models.NewValidationError("user_id", "User ID is required")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.AssignCard(c.Request.Context(), uint(id), input.UserID); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		if err == models.ErrUserNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "User not found"})
+			authErr, _ := err.(*models.AuthError)
+			c.JSON(http.StatusNotFound, authErr)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to assign card"})
+		c.JSON(http.StatusInternalServerError, "Failed to assign card")
 		return
 	}
 
@@ -354,22 +369,23 @@ func (h *CardHandler) AssignCard(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Success 204 "No Content"
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/unassign [post]
 func (h *CardHandler) UnassignCard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.UnassignCard(c.Request.Context(), uint(id)); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to unassign card"})
+		c.JSON(http.StatusInternalServerError, "Failed to unassign card")
 		return
 	}
 
@@ -385,14 +401,15 @@ func (h *CardHandler) UnassignCard(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body struct{DueDate *time.Time `json:"due_date"`} true "Due date (null to remove)"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/due-date [put]
 func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -401,23 +418,23 @@ func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardService.UpdateDueDate(c.Request.Context(), uint(id), input.DueDate); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		
-		var validationErr *models.ValidationError
-		if models.AsValidationError(err, &validationErr) {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: validationErr.Error()})
+		if validationErr, ok := err.(*models.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
 		
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to update due date"})
+		c.JSON(http.StatusInternalServerError, "Failed to update due date")
 		return
 	}
 
@@ -433,14 +450,15 @@ func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body struct{LabelID uint `json:"label_id"`} true "Label ID"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [post]
 func (h *CardHandler) AddLabelToCard(c *gin.Context) {
 	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -449,25 +467,27 @@ func (h *CardHandler) AddLabelToCard(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if input.LabelID == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Label ID is required"})
+		validErr := models.NewValidationError("label_id", "Label ID is required")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardLabelService.AddLabelToCard(c.Request.Context(), uint(cardID), input.LabelID); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		if err == models.ErrLabelNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Label not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to add label to card"})
+		c.JSON(http.StatusInternalServerError, "Failed to add label to card")
 		return
 	}
 
@@ -483,33 +503,35 @@ func (h *CardHandler) AddLabelToCard(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param label_id path int true "Label ID"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/labels/{label_id} [delete]
 func (h *CardHandler) RemoveLabelFromCard(c *gin.Context) {
 	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	labelID, err := strconv.ParseUint(c.Param("label_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid label ID"})
+		validErr := models.NewValidationError("label_id", "Invalid label ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardLabelService.RemoveLabelFromCard(c.Request.Context(), uint(cardID), uint(labelID)); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 		if err == models.ErrLabelNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Label not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to remove label from card"})
+		c.JSON(http.StatusInternalServerError, "Failed to remove label from card")
 		return
 	}
 
@@ -523,23 +545,24 @@ func (h *CardHandler) RemoveLabelFromCard(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Success 200 {array} models.Label
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [get]
 func (h *CardHandler) GetCardLabels(c *gin.Context) {
 	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	labels, err := h.cardLabelService.GetLabelsByCardID(c.Request.Context(), uint(cardID))
 	if err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to get card labels"})
+		c.JSON(http.StatusInternalServerError, "Failed to get card labels")
 		return
 	}
 
@@ -555,14 +578,15 @@ func (h *CardHandler) GetCardLabels(c *gin.Context) {
 // @Param id path int true "Card ID"
 // @Param input body struct{LabelIDs []uint `json:"label_ids"`} true "Label IDs"
 // @Success 204 "No Content"
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ValidationError
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/labels/batch [post]
 func (h *CardHandler) BatchAddLabelsToCard(c *gin.Context) {
 	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
@@ -571,21 +595,23 @@ func (h *CardHandler) BatchAddLabelsToCard(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request body"})
+		validErr := models.NewValidationError("request_body", "Invalid request body")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if len(input.LabelIDs) == 0 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "No label IDs provided"})
+		validErr := models.NewValidationError("label_ids", "No label IDs provided")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardLabelService.BatchAddLabelsToCard(c.Request.Context(), uint(cardID), input.LabelIDs); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to add labels to card"})
+		c.JSON(http.StatusInternalServerError, "Failed to add labels to card")
 		return
 	}
 
@@ -599,22 +625,23 @@ func (h *CardHandler) BatchAddLabelsToCard(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Success 204 "No Content"
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {string} string
+// @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [delete]
 func (h *CardHandler) RemoveAllLabelsFromCard(c *gin.Context) {
 	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid card ID"})
+		validErr := models.NewValidationError("id", "Invalid card ID")
+		c.JSON(http.StatusBadRequest, validErr)
 		return
 	}
 
 	if err := h.cardLabelService.RemoveAllLabelsFromCard(c.Request.Context(), uint(cardID)); err != nil {
 		if err == models.ErrCardNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "Card not found"})
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to remove labels from card"})
+		c.JSON(http.StatusInternalServerError, "Failed to remove labels from card")
 		return
 	}
 

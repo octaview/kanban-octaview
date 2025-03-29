@@ -61,13 +61,13 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
             boards.GET("", h.Board.GetUserBoards)
             
             // Individual board operations
-            boardID := boards.Group("/:id")
+            boardID := boards.Group("/:board_id")  // Changed from ":id" to ":board_id"
             {
                 boardID.GET("", h.Board.GetBoard)
                 boardID.PUT("", h.Board.UpdateBoard)
                 boardID.DELETE("", h.Board.DeleteBoard)
                 
-                // Change this line - use the same parameter name
+                // Now using ":board_id" consistently
                 boardID.GET("/columns", h.Column.GetBoardColumns)
             }
         }
@@ -75,36 +75,36 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
         columns := api.Group("/columns")
         {
             columns.POST("", h.Column.CreateColumn)
-            columns.GET("/:id", h.Column.GetColumn)
-            columns.PUT("/:id", h.Column.UpdateColumn)
-            columns.DELETE("/:id", h.Column.DeleteColumn)
+            columns.GET("/:column_id", h.Column.GetColumn)  // Changed from ":id" to ":column_id"
+            columns.PUT("/:column_id", h.Column.UpdateColumn)  // Changed from ":id" to ":column_id"
+            columns.DELETE("/:column_id", h.Column.DeleteColumn)  // Changed from ":id" to ":column_id"
             columns.PUT("/positions", h.Column.UpdateColumnPositions)
             
-            // Column cards routes
+            // Column cards routes - already using specific parameter name
             columns.GET("/:column_id/cards", h.Card.GetCardsByColumn)
         }
 
         // Rest of the routes remain unchanged
         cards := api.Group("/cards")
-		{
-			cards.POST("", h.Card.CreateCard)
-			cards.GET("/:id", h.Card.GetCard)
-			cards.PUT("/:id", h.Card.UpdateCard)
-			cards.DELETE("/:id", h.Card.DeleteCard)
-			cards.PUT("/positions", h.Card.UpdateCardPositions)
-			
-			// Card actions
-			cards.POST("/:id/move", h.Card.MoveCardToColumn)
-			cards.POST("/:id/assign", h.Card.AssignCard)
-			cards.POST("/:id/unassign", h.Card.UnassignCard)
-			cards.PUT("/:id/due-date", h.Card.UpdateDueDate)
-			
-			// Card labels
-			cards.GET("/:id/labels", h.Card.GetCardLabels)
-			cards.POST("/:id/labels", h.Card.AddLabelToCard)
-			cards.DELETE("/:id/labels", h.Card.RemoveAllLabelsFromCard)
-			cards.DELETE("/:id/labels/:label_id", h.Card.RemoveLabelFromCard)
-			cards.POST("/:id/labels/batch", h.Card.BatchAddLabelsToCard)
-		}
+        {
+            cards.POST("", h.Card.CreateCard)
+            cards.GET("/:card_id", h.Card.GetCard)  // Changed from ":id" to ":card_id"
+            cards.PUT("/:card_id", h.Card.UpdateCard)  // Changed from ":id" to ":card_id"
+            cards.DELETE("/:card_id", h.Card.DeleteCard)  // Changed from ":id" to ":card_id"
+            cards.PUT("/positions", h.Card.UpdateCardPositions)
+            
+            // Card actions - using consistent parameter names
+            cards.POST("/:card_id/move", h.Card.MoveCardToColumn)  // Changed from ":id" to ":card_id"
+            cards.POST("/:card_id/assign", h.Card.AssignCard)  // Changed from ":id" to ":card_id"
+            cards.POST("/:card_id/unassign", h.Card.UnassignCard)  // Changed from ":id" to ":card_id"
+            cards.PUT("/:card_id/due-date", h.Card.UpdateDueDate)  // Changed from ":id" to ":card_id"
+            
+            // Card labels - using consistent parameter names
+            cards.GET("/:card_id/labels", h.Card.GetCardLabels)  // Changed from ":id" to ":card_id"
+            cards.POST("/:card_id/labels", h.Card.AddLabelToCard)  // Changed from ":id" to ":card_id"
+            cards.DELETE("/:card_id/labels", h.Card.RemoveAllLabelsFromCard)  // Changed from ":id" to ":card_id"
+            cards.DELETE("/:card_id/labels/:label_id", h.Card.RemoveLabelFromCard)  // Changed from ":id" to ":card_id"
+            cards.POST("/:card_id/labels/batch", h.Card.BatchAddLabelsToCard)  // Changed from ":id" to ":card_id"
+        }
     }
 }

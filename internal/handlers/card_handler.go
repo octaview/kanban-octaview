@@ -83,7 +83,7 @@ func (h *CardHandler) CreateCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id} [get]
 func (h *CardHandler) GetCard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -148,7 +148,7 @@ func (h *CardHandler) GetCardsByColumn(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id} [put]
 func (h *CardHandler) UpdateCard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -197,7 +197,7 @@ func (h *CardHandler) UpdateCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id} [delete]
 func (h *CardHandler) DeleteCard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -268,7 +268,7 @@ func (h *CardHandler) UpdateCardPositions(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/move [post]
 func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -322,7 +322,7 @@ func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/assign [post]
 func (h *CardHandler) AssignCard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -373,7 +373,7 @@ func (h *CardHandler) AssignCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/unassign [post]
 func (h *CardHandler) UnassignCard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -406,7 +406,7 @@ func (h *CardHandler) UnassignCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/due-date [put]
 func (h *CardHandler) UpdateDueDate(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -455,7 +455,7 @@ func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [post]
 func (h *CardHandler) AddLabelToCard(c *gin.Context) {
-	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	cardID, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -508,7 +508,7 @@ func (h *CardHandler) AddLabelToCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/labels/{label_id} [delete]
 func (h *CardHandler) RemoveLabelFromCard(c *gin.Context) {
-	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	cardID, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -549,7 +549,7 @@ func (h *CardHandler) RemoveLabelFromCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [get]
 func (h *CardHandler) GetCardLabels(c *gin.Context) {
-	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	cardID, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -583,7 +583,7 @@ func (h *CardHandler) GetCardLabels(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/labels/batch [post]
 func (h *CardHandler) BatchAddLabelsToCard(c *gin.Context) {
-	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	cardID, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)
@@ -629,7 +629,7 @@ func (h *CardHandler) BatchAddLabelsToCard(c *gin.Context) {
 // @Failure 500 {string} string
 // @Router /api/cards/{id}/labels [delete]
 func (h *CardHandler) RemoveAllLabelsFromCard(c *gin.Context) {
-	cardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	cardID, err := strconv.ParseUint(c.Param("card_id"), 10, 32)
 	if err != nil {
 		validErr := models.NewValidationError("id", "Invalid card ID")
 		c.JSON(http.StatusBadRequest, validErr)

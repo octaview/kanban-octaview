@@ -49,7 +49,7 @@ func (h *ColumnHandler) CreateColumn(c *gin.Context) {
 }
 
 func (h *ColumnHandler) GetColumn(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("column_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid column ID"})
 		return
@@ -71,7 +71,7 @@ func (h *ColumnHandler) GetColumn(c *gin.Context) {
 // In internal/handlers/column_handler.go
 func (h *ColumnHandler) GetBoardColumns(c *gin.Context) {
     // Change this line from board_id to id
-    boardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    boardID, err := strconv.ParseUint(c.Param("column_id"), 10, 32)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board ID"})
         return
@@ -92,7 +92,7 @@ func (h *ColumnHandler) GetBoardColumns(c *gin.Context) {
 }
 
 func (h *ColumnHandler) UpdateColumn(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("column_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid column ID"})
 		return
@@ -125,7 +125,7 @@ func (h *ColumnHandler) UpdateColumn(c *gin.Context) {
 }
 
 func (h *ColumnHandler) DeleteColumn(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("column_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid column ID"})
 		return

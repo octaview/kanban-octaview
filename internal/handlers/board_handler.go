@@ -49,7 +49,7 @@ func (h *BoardHandler) CreateBoard(c *gin.Context) {
 }
 
 func (h *BoardHandler) GetBoard(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid board ID"})
 		return
@@ -95,7 +95,7 @@ func (h *BoardHandler) UpdateBoard(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid board ID"})
 		return
@@ -141,7 +141,7 @@ func (h *BoardHandler) DeleteBoard(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid board ID"})
 		return

@@ -68,24 +68,27 @@ func (h *ColumnHandler) GetColumn(c *gin.Context) {
 	c.JSON(http.StatusOK, column)
 }
 
+// In internal/handlers/column_handler.go
 func (h *ColumnHandler) GetBoardColumns(c *gin.Context) {
-	boardID, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board ID"})
-		return
-	}
+    // Change this line from board_id to id
+    boardID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board ID"})
+        return
+    }
 
-	columns, err := h.columnService.GetByBoardID(c.Request.Context(), uint(boardID))
-	if err != nil {
-		if err == models.ErrBoardNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    // Rest of the function remains the same
+    columns, err := h.columnService.GetByBoardID(c.Request.Context(), uint(boardID))
+    if err != nil {
+        if err == models.ErrBoardNotFound {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+            return
+        }
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	c.JSON(http.StatusOK, columns)
+    c.JSON(http.StatusOK, columns)
 }
 
 func (h *ColumnHandler) UpdateColumn(c *gin.Context) {

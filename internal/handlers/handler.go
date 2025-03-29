@@ -35,51 +35,57 @@ func NewHandler(services *service.Services, repos *repository.Repositories) *Han
 }
 
 func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc) {
-	// Public routes
-	auth := router.Group("/auth")
-	{
-		auth.POST("/register", h.Auth.Register)
-		auth.POST("/login", h.Auth.Login)
-		auth.POST("/refresh", h.Auth.RefreshToken)
-		auth.GET("/me", authMiddleware, h.Auth.GetMe)
-	}
+    // Public routes remain unchanged
+    auth := router.Group("/auth")
+    {
+        auth.POST("/register", h.Auth.Register)
+        auth.POST("/login", h.Auth.Login)
+        auth.POST("/refresh", h.Auth.RefreshToken)
+        auth.GET("/me", authMiddleware, h.Auth.GetMe)
+    }
 
-	// Protected routes
-	api := router.Group("/api", authMiddleware)
-	{
-		users := api.Group("/users")
-		{
-			users.GET("/:id", h.User.GetUser)
-			users.PUT("/:id", h.User.UpdateUser)
-			users.POST("/:id/change-password", h.User.ChangePassword)
-			users.DELETE("/:id", h.User.DeleteUser)
-		}
+    // Protected routes
+    api := router.Group("/api", authMiddleware)
+    {
+        users := api.Group("/users")
+        {
+            users.GET("/:id", h.User.GetUser)
+            users.PUT("/:id", h.User.UpdateUser)
+            users.POST("/:id/change-password", h.User.ChangePassword)
+            users.DELETE("/:id", h.User.DeleteUser)
+        }
 
-		boards := api.Group("/boards")
-		{
-			boards.POST("", h.Board.CreateBoard)
-			boards.GET("", h.Board.GetUserBoards)
-			boards.GET("/:id", h.Board.GetBoard)
-			boards.PUT("/:id", h.Board.UpdateBoard)
-			boards.DELETE("/:id", h.Board.DeleteBoard)
-			
-			// Board columns routes
-			boards.GET("/:board_id/columns", h.Column.GetBoardColumns)
-		}
-		
-		columns := api.Group("/columns")
-		{
-			columns.POST("", h.Column.CreateColumn)
-			columns.GET("/:id", h.Column.GetColumn)
-			columns.PUT("/:id", h.Column.UpdateColumn)
-			columns.DELETE("/:id", h.Column.DeleteColumn)
-			columns.PUT("/positions", h.Column.UpdateColumnPositions)
-			
-			// Column cards routes
-			columns.GET("/:column_id/cards", h.Card.GetCardsByColumn)
-		}
+        boards := api.Group("/boards")
+        {
+            boards.POST("", h.Board.CreateBoard)
+            boards.GET("", h.Board.GetUserBoards)
+            
+            // Individual board operations
+            boardID := boards.Group("/:id")
+            {
+                boardID.GET("", h.Board.GetBoard)
+                boardID.PUT("", h.Board.UpdateBoard)
+                boardID.DELETE("", h.Board.DeleteBoard)
+                
+                // Change this line - use the same parameter name
+                boardID.GET("/columns", h.Column.GetBoardColumns)
+            }
+        }
+        
+        columns := api.Group("/columns")
+        {
+            columns.POST("", h.Column.CreateColumn)
+            columns.GET("/:id", h.Column.GetColumn)
+            columns.PUT("/:id", h.Column.UpdateColumn)
+            columns.DELETE("/:id", h.Column.DeleteColumn)
+            columns.PUT("/positions", h.Column.UpdateColumnPositions)
+            
+            // Column cards routes
+            columns.GET("/:column_id/cards", h.Card.GetCardsByColumn)
+        }
 
-		cards := api.Group("/cards")
+        // Rest of the routes remain unchanged
+        cards := api.Group("/cards")
 		{
 			cards.POST("", h.Card.CreateCard)
 			cards.GET("/:id", h.Card.GetCard)
@@ -100,7 +106,5 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
 			cards.DELETE("/:id/labels/:label_id", h.Card.RemoveLabelFromCard)
 			cards.POST("/:id/labels/batch", h.Card.BatchAddLabelsToCard)
 		}
-
-		// Additional routes will be added here
-	}
+    }
 }

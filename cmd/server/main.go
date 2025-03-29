@@ -64,7 +64,7 @@ func main() {
 	
 	authMiddleware := middleware.NewAuthMiddleware(services.Auth)
 	
-	handler := handlers.NewHandler(services)
+	handler := handlers.NewHandler(services, repos)
 
 	router := gin.Default()
 

@@ -39,7 +39,7 @@ func (h *LabelHandler) CreateLabel(c *gin.Context) {
 	}
 
 	if err := h.labelService.Create(c.Request.Context(), &label); err != nil {
-		handleServiceError(c, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -67,7 +67,11 @@ func (h *LabelHandler) GetLabel(c *gin.Context) {
 
 	label, err := h.labelService.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
-		handleServiceError(c, err)
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -95,7 +99,11 @@ func (h *LabelHandler) GetBoardLabels(c *gin.Context) {
 
 	labels, err := h.labelService.GetByBoardID(c.Request.Context(), uint(boardID))
 	if err != nil {
-		handleServiceError(c, err)
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -131,7 +139,11 @@ func (h *LabelHandler) UpdateLabel(c *gin.Context) {
 
 	label.ID = uint(id)
 	if err := h.labelService.Update(c.Request.Context(), &label); err != nil {
-		handleServiceError(c, err)
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -158,7 +170,11 @@ func (h *LabelHandler) DeleteLabel(c *gin.Context) {
 	}
 
 	if err := h.labelService.Delete(c.Request.Context(), uint(id)); err != nil {
-		handleServiceError(c, err)
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

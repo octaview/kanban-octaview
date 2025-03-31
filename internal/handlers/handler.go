@@ -12,6 +12,7 @@ type Handler struct {
 	Board     *BoardHandler
 	Column    *ColumnHandler
 	Card      *CardHandler
+    Label    *LabelHandler
 	// Additional handlers will be added here as needed
 }
 
@@ -30,6 +31,7 @@ func NewHandler(services *service.Services, repos *repository.Repositories) *Han
 		Board:     NewBoardHandler(services.Board),
 		Column:    NewColumnHandler(services.Column),
 		Card:      NewCardHandler(services.Card, cardLabelService),
+        Label: NewLabelHandler(services.Label),
 		// Initialize other handlers
 	}
 }
@@ -105,6 +107,13 @@ func (h *Handler) InitRoutes(router *gin.Engine, authMiddleware gin.HandlerFunc)
             cards.DELETE("/:card_id/labels", h.Card.RemoveAllLabelsFromCard)  // Changed from ":id" to ":card_id"
             cards.DELETE("/:card_id/labels/:label_id", h.Card.RemoveLabelFromCard)  // Changed from ":id" to ":card_id"
             cards.POST("/:card_id/labels/batch", h.Card.BatchAddLabelsToCard)  // Changed from ":id" to ":card_id"
+        }
+        labels := api.Group("/labels")
+        {
+            labels.POST("", h.Label.CreateLabel)
+            labels.GET("/:label_id", h.Label.GetLabel)
+            labels.PUT("/:label_id", h.Label.UpdateLabel)
+            labels.DELETE("/:label_id", h.Label.DeleteLabel)
         }
     }
 }

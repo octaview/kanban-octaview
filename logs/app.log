@@ -1,6 +1,0 @@
-time=2025-03-29T13:31:58.056+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:91 msg="Server started" port=8080
-time=2025-03-29T13:33:41.670+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:96 msg="Shutting down server..."
-time=2025-03-29T13:33:41.671+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:105 msg="Server exited properly"
-time=2025-03-29T14:15:18.090+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:91 msg="Server started" port=8080
-time=2025-03-29T17:29:30.956+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:96 msg="Shutting down server..."
-time=2025-03-29T17:29:30.957+03:00 level=INFO source=C:/Users/octaview/Documents/canban-octaview/kanban-octaview/cmd/server/main.go:105 msg="Server exited properly"

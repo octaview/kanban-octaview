@@ -50,8 +50,14 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 
 	if err := h.commentService.Create(c.Request.Context(), &input); err != nil {
 		statusCode := http.StatusInternalServerError
-		if err == models.ErrCardNotFound || err == models.ErrUserNotFound {
+		if err == models.ErrCardNotFound {
 			statusCode = http.StatusNotFound
+		} else if err == models.ErrUserNotFound {
+			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -82,6 +88,10 @@ func (h *CommentHandler) GetCommentByID(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCommentNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -112,6 +122,10 @@ func (h *CommentHandler) GetCommentsByCard(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCardNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -152,6 +166,10 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCommentNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -180,6 +198,10 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCommentNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -213,6 +235,10 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCommentNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return
@@ -235,6 +261,10 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		if err == models.ErrCommentNotFound {
 			statusCode = http.StatusNotFound
+		} else if models.IsValidationError(err) || models.IsAuthError(err) {
+			statusCode = http.StatusBadRequest
+		} else if models.IsDatabaseError(err) {
+			statusCode = http.StatusInternalServerError
 		}
 		c.JSON(statusCode, models.ErrorResponse{Message: err.Error()})
 		return

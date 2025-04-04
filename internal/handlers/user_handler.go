@@ -30,10 +30,6 @@ type changePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
-type errorResponse struct {
-	Error string `json:"error"`
-}
-
 // GetUser godoc
 // @Summary Get user by ID
 // @Description Get a user by their ID

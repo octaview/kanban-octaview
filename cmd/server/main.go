@@ -18,8 +18,18 @@ import (
 	"github.com/octaview/kanban-octaview/internal/service"
 	"github.com/octaview/kanban-octaview/pkg/database"
 	"github.com/octaview/kanban-octaview/pkg/logger"
+
+	// Swagger
+	_ "github.com/octaview/kanban-octaview/docs" // импорт сгенерированной документации
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Kanban Octaview API
+// @version 1.0
+// @description API для приложения Kanban.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	logConfig := logger.Config{
 		Level:       slog.LevelInfo,
@@ -54,26 +64,30 @@ func main() {
 		log.Error("Failed to initialize database", slog.Any("error", err))
 		os.Exit(1)
 	}
-	
+
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 
 	repos := repository.NewRepositories(db)
-	
+
 	services := service.NewServices(repos, cfg)
-	
+
 	authMiddleware := middleware.NewAuthMiddleware(services.Auth)
-	
+
 	handler := handlers.NewHandler(services, repos)
 
 	router := gin.Default()
 
+	// Endpoint для проверки работоспособности
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 			"time":   time.Now().Format(time.RFC3339),
 		})
 	})
+
+	// Добавляем маршрут для Swagger UI
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	handler.InitRoutes(router, authMiddleware.AuthRequired())
 

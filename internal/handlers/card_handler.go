@@ -43,6 +43,11 @@ type BatchAddLabelsInput struct {
 	LabelIDs []uint `json:"label_ids"`
 }
 
+// AddLabelInput представляет входные данные для добавления метки к карточке.
+type AddLabelInput struct {
+	LabelID uint `json:"label_id"`
+}
+
 // CreateCard godoc
 // @Summary Create a new card
 // @Description Create a new card in a column
@@ -469,7 +474,7 @@ func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
-// @Param input body struct{LabelID uint `json:"label_id"`} true "Label ID"
+// @Param input body AddLabelInput true "Label ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} models.ValidationError
 // @Failure 404 {string} string

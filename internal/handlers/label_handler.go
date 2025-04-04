@@ -9,6 +9,29 @@ import (
 	"github.com/octaview/kanban-octaview/internal/service"
 )
 
+// ErrorResponse represents a standard error response
+type ErrorResponse struct {
+	Error string `json:"error" example:"Error message details"`
+}
+
+// LabelRequest represents the request body for label operations
+type LabelRequest struct {
+	Name    string `json:"name" example:"Bug" binding:"required"`
+	Color   string `json:"color" example:"#FF0000" binding:"required"`
+	BoardID uint   `json:"board_id" example:"1" binding:"required"`
+}
+
+// LabelResponse represents the response for a single label
+type LabelResponse struct {
+	ID      uint   `json:"id" example:"1"`
+	Name    string `json:"name" example:"Bug"`
+	Color   string `json:"color" example:"#FF0000"`
+	BoardID uint   `json:"board_id" example:"1"`
+}
+
+// LabelsResponse represents the response for multiple labels
+type LabelsResponse []LabelResponse
+
 type LabelHandler struct {
 	labelService service.LabelServiceInterface
 }
@@ -25,25 +48,36 @@ func NewLabelHandler(labelService service.LabelServiceInterface) *LabelHandler {
 // @Tags labels
 // @Accept json
 // @Produce json
-// @Param label body models.Label true "Label object"
-// @Success 201 {object} models.Label
+// @Param request body LabelRequest true "Label information"
+// @Success 201 {object} LabelResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/labels [post]
 func (h *LabelHandler) CreateLabel(c *gin.Context) {
-	var label models.Label
-	if err := c.ShouldBindJSON(&label); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var labelReq LabelRequest
+	if err := c.ShouldBindJSON(&labelReq); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
+	}
+
+	label := models.Label{
+		Name:    labelReq.Name,
+		Color:   labelReq.Color,
+		BoardID: labelReq.BoardID,
 	}
 
 	if err := h.labelService.Create(c.Request.Context(), &label); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, label)
+	c.JSON(http.StatusCreated, LabelResponse{
+		ID:      label.ID,
+		Name:    label.Name,
+		Color:   label.Color,
+		BoardID: label.BoardID,
+	})
 }
 
 // GetLabel godoc
@@ -52,7 +86,7 @@ func (h *LabelHandler) CreateLabel(c *gin.Context) {
 // @Tags labels
 // @Produce json
 // @Param label_id path int true "Label ID"
-// @Success 200 {object} models.Label
+// @Success 200 {object} LabelResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
@@ -61,21 +95,26 @@ func (h *LabelHandler) CreateLabel(c *gin.Context) {
 func (h *LabelHandler) GetLabel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("label_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid label ID"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid label ID"})
 		return
 	}
 
 	label, err := h.labelService.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Label not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, label)
+	c.JSON(http.StatusOK, LabelResponse{
+		ID:      label.ID,
+		Name:    label.Name,
+		Color:   label.Color,
+		BoardID: label.BoardID,
+	})
 }
 
 // GetBoardLabels godoc
@@ -84,7 +123,7 @@ func (h *LabelHandler) GetLabel(c *gin.Context) {
 // @Tags labels
 // @Produce json
 // @Param board_id path int true "Board ID"
-// @Success 200 {array} models.Label
+// @Success 200 {array} LabelResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
@@ -93,21 +132,31 @@ func (h *LabelHandler) GetLabel(c *gin.Context) {
 func (h *LabelHandler) GetBoardLabels(c *gin.Context) {
 	boardID, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board ID"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid board ID"})
 		return
 	}
 
 	labels, err := h.labelService.GetByBoardID(c.Request.Context(), uint(boardID))
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Board not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Board not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, labels)
+	response := make(LabelsResponse, 0, len(labels))
+	for _, label := range labels {
+		response = append(response, LabelResponse{
+			ID:      label.ID,
+			Name:    label.Name,
+			Color:   label.Color,
+			BoardID: label.BoardID,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // UpdateLabel godoc
@@ -117,8 +166,8 @@ func (h *LabelHandler) GetBoardLabels(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param label_id path int true "Label ID"
-// @Param label body models.Label true "Label object"
-// @Success 200 {object} models.Label
+// @Param request body LabelRequest true "Label information"
+// @Success 200 {object} LabelResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
@@ -127,27 +176,38 @@ func (h *LabelHandler) GetBoardLabels(c *gin.Context) {
 func (h *LabelHandler) UpdateLabel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("label_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid label ID"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid label ID"})
 		return
 	}
 
-	var label models.Label
-	if err := c.ShouldBindJSON(&label); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var labelReq LabelRequest
+	if err := c.ShouldBindJSON(&labelReq); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	label.ID = uint(id)
+	label := models.Label{
+		ID:      uint(id),
+		Name:    labelReq.Name,
+		Color:   labelReq.Color,
+		BoardID: labelReq.BoardID,
+	}
+
 	if err := h.labelService.Update(c.Request.Context(), &label); err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Label not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, label)
+	c.JSON(http.StatusOK, LabelResponse{
+		ID:      label.ID,
+		Name:    label.Name,
+		Color:   label.Color,
+		BoardID: label.BoardID,
+	})
 }
 
 // DeleteLabel godoc
@@ -165,16 +225,16 @@ func (h *LabelHandler) UpdateLabel(c *gin.Context) {
 func (h *LabelHandler) DeleteLabel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("label_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid label ID"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid label ID"})
 		return
 	}
 
 	if err := h.labelService.Delete(c.Request.Context(), uint(id)); err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Label not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 

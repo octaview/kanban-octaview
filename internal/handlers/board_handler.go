@@ -20,6 +20,18 @@ func NewBoardHandler(boardService service.BoardServiceInterface) *BoardHandler {
 	}
 }
 
+// CreateBoard godoc
+// @Summary Создать доску
+// @Description Создает новую доску для авторизованного пользователя
+// @Tags board
+// @Accept json
+// @Produce json
+// @Param board body models.Board true "Данные доски"
+// @Success 201 {object} models.Board "Доска успешно создана"
+// @Failure 400 {object} map[string]string "Ошибка запроса или пользователь не найден"
+// @Failure 401 {object} map[string]string "Неавторизованный запрос"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /boards [post]
 func (h *BoardHandler) CreateBoard(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -48,6 +60,17 @@ func (h *BoardHandler) CreateBoard(c *gin.Context) {
 	c.JSON(http.StatusCreated, input)
 }
 
+// GetBoard godoc
+// @Summary Получить доску
+// @Description Возвращает доску по указанному ID
+// @Tags board
+// @Produce json
+// @Param board_id path int true "ID доски"
+// @Success 200 {object} models.Board "Доска успешно найдена"
+// @Failure 400 {object} map[string]string "Неверный формат ID"
+// @Failure 404 {object} map[string]string "Доска не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /boards/{board_id} [get]
 func (h *BoardHandler) GetBoard(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("board_id"), 10, 32)
 	if err != nil {
@@ -68,6 +91,16 @@ func (h *BoardHandler) GetBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, board)
 }
 
+// GetUserBoards godoc
+// @Summary Получить доски пользователя
+// @Description Возвращает все доски, принадлежащие авторизованному пользователю
+// @Tags board
+// @Produce json
+// @Success 200 {array} models.Board "Список досок"
+// @Failure 401 {object} map[string]string "Неавторизованный запрос"
+// @Failure 400 {object} map[string]string "Пользователь не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /boards [get]
 func (h *BoardHandler) GetUserBoards(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -88,6 +121,21 @@ func (h *BoardHandler) GetUserBoards(c *gin.Context) {
 	c.JSON(http.StatusOK, boards)
 }
 
+// UpdateBoard godoc
+// @Summary Обновить доску
+// @Description Обновляет данные доски по ID, если пользователь является её владельцем
+// @Tags board
+// @Accept json
+// @Produce json
+// @Param board_id path int true "ID доски"
+// @Param board body models.Board true "Новые данные доски"
+// @Success 200 {object} models.Board "Доска успешно обновлена"
+// @Failure 400 {object} map[string]string "Неверный формат ID или ошибка данных"
+// @Failure 401 {object} map[string]string "Неавторизованный запрос"
+// @Failure 403 {object} map[string]string "Нет прав на обновление доски"
+// @Failure 404 {object} map[string]string "Доска не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /boards/{board_id} [put]
 func (h *BoardHandler) UpdateBoard(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -134,6 +182,19 @@ func (h *BoardHandler) UpdateBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, input)
 }
 
+// DeleteBoard godoc
+// @Summary Удалить доску
+// @Description Удаляет доску по ID, если пользователь является её владельцем
+// @Tags board
+// @Produce json
+// @Param board_id path int true "ID доски"
+// @Success 200 {object} map[string]string "Сообщение об успешном удалении"
+// @Failure 400 {object} map[string]string "Неверный формат ID"
+// @Failure 401 {object} map[string]string "Неавторизованный запрос"
+// @Failure 403 {object} map[string]string "Нет прав на удаление доски"
+// @Failure 404 {object} map[string]string "Доска не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /boards/{board_id} [delete]
 func (h *BoardHandler) DeleteBoard(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

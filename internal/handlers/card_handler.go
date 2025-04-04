@@ -22,6 +22,27 @@ func NewCardHandler(cardService service.CardServiceInterface, cardLabelService *
 	}
 }
 
+// MoveCardInput представляет входные данные для перемещения карточки.
+type MoveCardInput struct {
+	ColumnID uint `json:"column_id"`
+	Position int  `json:"position"`
+}
+
+// AssignCardInput представляет входной параметр для назначения карточки пользователю.
+type AssignCardInput struct {
+	UserID uint `json:"user_id"`
+}
+
+// UpdateDueDateInput представляет входные данные для обновления даты завершения.
+type UpdateDueDateInput struct {
+	DueDate *time.Time `json:"due_date"`
+}
+
+// BatchAddLabelsInput представляет входные данные для пакетного добавления меток.
+type BatchAddLabelsInput struct {
+	LabelIDs []uint `json:"label_ids"`
+}
+
 // CreateCard godoc
 // @Summary Create a new card
 // @Description Create a new card in a column
@@ -59,12 +80,12 @@ func (h *CardHandler) CreateCard(c *gin.Context) {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		
+
 		if validationErr, ok := err.(*models.ValidationError); ok {
 			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
-		
+
 		c.JSON(http.StatusInternalServerError, "Failed to create card")
 		return
 	}
@@ -173,12 +194,12 @@ func (h *CardHandler) UpdateCard(c *gin.Context) {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		
+
 		if validationErr, ok := err.(*models.ValidationError); ok {
 			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
-		
+
 		c.JSON(http.StatusInternalServerError, "Failed to update card")
 		return
 	}
@@ -261,7 +282,7 @@ func (h *CardHandler) UpdateCardPositions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
-// @Param input body struct{ColumnID uint `json:"column_id"`;Position int `json:"position"`} true "New column and position"
+// @Param input body MoveCardInput true "New column and position"
 // @Success 204 "No Content"
 // @Failure 400 {object} models.ValidationError
 // @Failure 404 {string} string
@@ -315,7 +336,7 @@ func (h *CardHandler) MoveCardToColumn(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
-// @Param input body struct{UserID uint `json:"user_id"`} true "User ID"
+// @Param input body AssignCardInput true "User ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} models.ValidationError
 // @Failure 404 {string} string
@@ -399,7 +420,7 @@ func (h *CardHandler) UnassignCard(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
-// @Param input body struct{DueDate *time.Time `json:"due_date"`} true "Due date (null to remove)"
+// @Param input body UpdateDueDateInput true "Due date (null to remove)"
 // @Success 204 "No Content"
 // @Failure 400 {object} models.ValidationError
 // @Failure 404 {string} string
@@ -428,12 +449,12 @@ func (h *CardHandler) UpdateDueDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
-		
+
 		if validationErr, ok := err.(*models.ValidationError); ok {
 			c.JSON(http.StatusBadRequest, validationErr)
 			return
 		}
-		
+
 		c.JSON(http.StatusInternalServerError, "Failed to update due date")
 		return
 	}
@@ -576,7 +597,7 @@ func (h *CardHandler) GetCardLabels(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
-// @Param input body struct{LabelIDs []uint `json:"label_ids"`} true "Label IDs"
+// @Param input body BatchAddLabelsInput true "Label IDs"
 // @Success 204 "No Content"
 // @Failure 400 {object} models.ValidationError
 // @Failure 404 {string} string

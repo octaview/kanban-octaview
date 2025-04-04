@@ -40,6 +40,10 @@ type authResponse struct {
 	User  *models.User `json:"user"`
 }
 
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
 // Register godoc
 // @Summary Register a new user
 // @Description Register a new user with email, password and name

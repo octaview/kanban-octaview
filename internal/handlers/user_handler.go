@@ -9,6 +9,15 @@ import (
 	"github.com/octaview/kanban-octaview/internal/service"
 )
 
+// H is a shortcut for map[string]interface{}
+// @name H
+type H = map[string]interface{}
+
+// MessageResponse represents success response with message
+type MessageResponse struct {
+	Message string `json:"message" example:"Operation successful"`
+}
+
 type UserHandler struct {
 	userService service.UserServiceInterface
 }
@@ -39,9 +48,9 @@ type changePasswordRequest struct {
 // @Param id path int true "User ID"
 // @Security ApiKeyAuth
 // @Success 200 {object} models.User
-// @Failure 400 {object} errorResponse
-// @Failure 404 {object} errorResponse
-// @Failure 500 {object} errorResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	idStr := c.Param("id")
@@ -74,11 +83,11 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 // @Param input body updateUserRequest true "User update info"
 // @Security ApiKeyAuth
 // @Success 200 {object} models.User
-// @Failure 400 {object} errorResponse
-// @Failure 401 {object} errorResponse
-// @Failure 403 {object} errorResponse
-// @Failure 404 {object} errorResponse
-// @Failure 500 {object} errorResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	idStr := c.Param("id")
@@ -137,12 +146,12 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Param id path int true "User ID"
 // @Param input body changePasswordRequest true "Password change info"
 // @Security ApiKeyAuth
-// @Success 200 {object} gin.H
-// @Failure 400 {object} errorResponse
-// @Failure 401 {object} errorResponse
-// @Failure 403 {object} errorResponse
-// @Failure 404 {object} errorResponse
-// @Failure 500 {object} errorResponse
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /users/{id}/change-password [post]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	idStr := c.Param("id")
@@ -187,12 +196,12 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Produce json
 // @Param id path int true "User ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} gin.H
-// @Failure 400 {object} errorResponse
-// @Failure 401 {object} errorResponse
-// @Failure 403 {object} errorResponse
-// @Failure 404 {object} errorResponse
-// @Failure 500 {object} errorResponse
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	idStr := c.Param("id")

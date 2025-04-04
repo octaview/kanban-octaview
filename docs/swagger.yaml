@@ -1,9 +1,1847 @@
 basePath: /
+definitions:
+  handlers.AddLabelInput:
+    properties:
+      label_id:
+        type: integer
+    type: object
+  handlers.AssignCardInput:
+    properties:
+      user_id:
+        type: integer
+    type: object
+  handlers.BatchAddLabelsInput:
+    properties:
+      label_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: Error message details
+        type: string
+    type: object
+  handlers.LabelRequest:
+    properties:
+      board_id:
+        example: 1
+        type: integer
+      color:
+        example: '#FF0000'
+        type: string
+      name:
+        example: Bug
+        type: string
+    required:
+    - board_id
+    - color
+    - name
+    type: object
+  handlers.LabelResponse:
+    properties:
+      board_id:
+        example: 1
+        type: integer
+      color:
+        example: '#FF0000'
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: Bug
+        type: string
+    type: object
+  handlers.MessageResponse:
+    properties:
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  handlers.MoveCardInput:
+    properties:
+      column_id:
+        type: integer
+      position:
+        type: integer
+    type: object
+  handlers.UpdateDueDateInput:
+    properties:
+      due_date:
+        type: string
+    type: object
+  handlers.authResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  handlers.changePasswordRequest:
+    properties:
+      new_password:
+        minLength: 6
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  handlers.errorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.refreshTokenRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  handlers.registerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handlers.updateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    type: object
+  models.Board:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      owner:
+        $ref: '#/definitions/models.User'
+      owner_id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Card:
+    properties:
+      assigned_to:
+        type: integer
+      column:
+        $ref: '#/definitions/models.Column'
+      column_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.Column:
+    properties:
+      board:
+        $ref: '#/definitions/models.Board'
+      board_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Comment:
+    properties:
+      card:
+        $ref: '#/definitions/models.Card'
+      card_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: integer
+    type: object
+  models.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Label:
+    properties:
+      board:
+        $ref: '#/definitions/models.Board'
+      board_id:
+        type: integer
+      color:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ValidationError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: API для приложения Kanban.
   title: Kanban Octaview API
   version: "1.0"
-paths: {}
+paths:
+  /api/boards/{board_id}/labels:
+    get:
+      description: Get all labels for a specific board
+      parameters:
+      - description: Board ID
+        in: path
+        name: board_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.LabelResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get labels by board ID
+      tags:
+      - labels
+  /api/cards:
+    post:
+      consumes:
+      - application/json
+      description: Create a new card in a column
+      parameters:
+      - description: Card data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Card'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Card'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new card
+      tags:
+      - cards
+  /api/cards/{card_id}/comments:
+    get:
+      description: Get all comments for a specific card
+      parameters:
+      - description: Card ID
+        in: path
+        name: card_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Comment'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get comments by card ID
+      tags:
+      - comments
+  /api/cards/{id}:
+    delete:
+      description: Delete a card by its ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete a card
+      tags:
+      - cards
+    get:
+      description: Get a card by its ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Card'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get a card by ID
+      tags:
+      - cards
+    put:
+      consumes:
+      - application/json
+      description: Update a card by its ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated card data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Card'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Card'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update a card
+      tags:
+      - cards
+  /api/cards/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a card to a user by user ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignCardInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Assign a card to a user
+      tags:
+      - cards
+  /api/cards/{id}/due-date:
+    put:
+      consumes:
+      - application/json
+      description: Set or update the due date for a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Due date (null to remove)
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateDueDateInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update card due date
+      tags:
+      - cards
+  /api/cards/{id}/labels:
+    delete:
+      description: Remove all labels associated with a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Remove all labels from a card
+      tags:
+      - cards
+      - labels
+    get:
+      description: Get all labels associated with a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Label'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all labels for a card
+      tags:
+      - cards
+      - labels
+    post:
+      consumes:
+      - application/json
+      description: Add a label to a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label ID
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddLabelInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add a label to a card
+      tags:
+      - cards
+      - labels
+  /api/cards/{id}/labels/{label_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a label from a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label ID
+        in: path
+        name: label_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Remove a label from a card
+      tags:
+      - cards
+      - labels
+  /api/cards/{id}/labels/batch:
+    post:
+      consumes:
+      - application/json
+      description: Add multiple labels to a card in a single request
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label IDs
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BatchAddLabelsInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add multiple labels to a card
+      tags:
+      - cards
+      - labels
+  /api/cards/{id}/move:
+    post:
+      consumes:
+      - application/json
+      description: Move a card to another column with a specific position
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New column and position
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.MoveCardInput'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Move a card to another column
+      tags:
+      - cards
+  /api/cards/{id}/unassign:
+    post:
+      description: Remove user assignment from a card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Unassign a card
+      tags:
+      - cards
+  /api/cards/positions:
+    put:
+      consumes:
+      - application/json
+      description: Update the positions of multiple cards within a column
+      parameters:
+      - description: Cards with new positions
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Card'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update card positions
+      tags:
+      - cards
+  /api/columns/{column_id}/cards:
+    get:
+      description: Get all cards in a column
+      parameters:
+      - description: Column ID
+        in: path
+        name: column_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Card'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get cards by column ID
+      tags:
+      - cards
+  /api/columns/positions:
+    put:
+      consumes:
+      - application/json
+      description: Обновляет позиции нескольких колонок в рамках одной доски.
+      parameters:
+      - description: Список колонок с новыми позициями
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Column'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Positions updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверные входные данные или отсутствуют колонки
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновить позиции колонок
+      tags:
+      - columns
+  /api/comments:
+    post:
+      consumes:
+      - application/json
+      description: Create a new comment for a card
+      parameters:
+      - description: Comment data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Comment'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Comment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new comment
+      tags:
+      - comments
+  /api/comments/{comment_id}:
+    delete:
+      description: Delete a comment by ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: comment_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a comment
+      tags:
+      - comments
+    get:
+      description: Get a comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: comment_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Comment'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get comment by ID
+      tags:
+      - comments
+    put:
+      consumes:
+      - application/json
+      description: Update a comment's content
+      parameters:
+      - description: Comment ID
+        in: path
+        name: comment_id
+        required: true
+        type: integer
+      - description: Updated comment data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Comment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Comment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a comment
+      tags:
+      - comments
+  /api/labels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new label for a board
+      parameters:
+      - description: Label information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LabelRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.LabelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create a new label
+      tags:
+      - labels
+  /api/labels/{label_id}:
+    delete:
+      description: Delete a label by its ID
+      parameters:
+      - description: Label ID
+        in: path
+        name: label_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete label
+      tags:
+      - labels
+    get:
+      description: Get label details by its ID
+      parameters:
+      - description: Label ID
+        in: path
+        name: label_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LabelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get label by ID
+      tags:
+      - labels
+    put:
+      consumes:
+      - application/json
+      description: Update label details
+      parameters:
+      - description: Label ID
+        in: path
+        name: label_id
+        required: true
+        type: integer
+      - description: Label information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LabelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LabelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Update label
+      tags:
+      - labels
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: Login a user
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get information about the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user info
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the authentication token using the current valid token
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.refreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: Refresh authentication token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, password and name
+      parameters:
+      - description: User registration info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.errorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /boards:
+    get:
+      description: Возвращает все доски, принадлежащие авторизованному пользователю
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список досок
+          schema:
+            items:
+              $ref: '#/definitions/models.Board'
+            type: array
+        "400":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неавторизованный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить доски пользователя
+      tags:
+      - board
+    post:
+      consumes:
+      - application/json
+      description: Создает новую доску для авторизованного пользователя
+      parameters:
+      - description: Данные доски
+        in: body
+        name: board
+        required: true
+        schema:
+          $ref: '#/definitions/models.Board'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Доска успешно создана
+          schema:
+            $ref: '#/definitions/models.Board'
+        "400":
+          description: Ошибка запроса или пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неавторизованный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создать доску
+      tags:
+      - board
+  /boards/{board_id}:
+    delete:
+      description: Удаляет доску по ID, если пользователь является её владельцем
+      parameters:
+      - description: ID доски
+        in: path
+        name: board_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном удалении
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный формат ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неавторизованный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Нет прав на удаление доски
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить доску
+      tags:
+      - board
+    get:
+      description: Возвращает доску по указанному ID
+      parameters:
+      - description: ID доски
+        in: path
+        name: board_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Доска успешно найдена
+          schema:
+            $ref: '#/definitions/models.Board'
+        "400":
+          description: Неверный формат ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить доску
+      tags:
+      - board
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные доски по ID, если пользователь является её владельцем
+      parameters:
+      - description: ID доски
+        in: path
+        name: board_id
+        required: true
+        type: integer
+      - description: Новые данные доски
+        in: body
+        name: board
+        required: true
+        schema:
+          $ref: '#/definitions/models.Board'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Доска успешно обновлена
+          schema:
+            $ref: '#/definitions/models.Board'
+        "400":
+          description: Неверный формат ID или ошибка данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неавторизованный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Нет прав на обновление доски
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновить доску
+      tags:
+      - board
+  /boards/{board_id}/columns:
+    get:
+      description: Возвращает все колонки, принадлежащие указанной доске.
+      parameters:
+      - description: ID доски
+        in: path
+        name: board_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список колонок доски
+          schema:
+            items:
+              $ref: '#/definitions/models.Column'
+            type: array
+        "400":
+          description: Неверный формат ID доски
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить колонки доски
+      tags:
+      - columns
+  /columns:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую колонку для указанной доски.
+      parameters:
+      - description: Данные колонки (должны содержать BoardID и Title)
+        in: body
+        name: column
+        required: true
+        schema:
+          $ref: '#/definitions/models.Column'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Колонка успешно создана
+          schema:
+            $ref: '#/definitions/models.Column'
+        "400":
+          description: Неверные входные данные или отсутствует BoardID/Title
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Доска не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создать колонку
+      tags:
+      - columns
+  /columns/{column_id}:
+    delete:
+      description: Удаляет колонку по её ID.
+      parameters:
+      - description: ID колонки
+        in: path
+        name: column_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Колонка успешно удалена
+          schema:
+            type: string
+        "400":
+          description: Неверный формат ID колонки
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Колонка не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить колонку
+      tags:
+      - columns
+    get:
+      description: Возвращает колонку по её ID.
+      parameters:
+      - description: ID колонки
+        in: path
+        name: column_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Колонка успешно найдена
+          schema:
+            $ref: '#/definitions/models.Column'
+        "400":
+          description: Неверный формат ID колонки
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Колонка не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить колонку
+      tags:
+      - columns
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные колонки по ID.
+      parameters:
+      - description: ID колонки
+        in: path
+        name: column_id
+        required: true
+        type: integer
+      - description: Новые данные колонки
+        in: body
+        name: column
+        required: true
+        schema:
+          $ref: '#/definitions/models.Column'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Колонка успешно обновлена
+          schema:
+            $ref: '#/definitions/models.Column'
+        "400":
+          description: Неверный формат ID или входные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Колонка не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновить колонку
+      tags:
+      - columns
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User update info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - users
+  /users/{id}/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change the password for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Password change info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.changePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Change user password
+      tags:
+      - users
 swagger: "2.0"
